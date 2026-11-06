@@ -1,0 +1,711 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>진짜를 가려라</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans+KR:wght@400;500;700&display=swap">
+<style>
+/* Layout: one-screen booth kiosk. Top bar + a single active view; document-examiner look (security-print paper, ink teal, stamp red). */
+:root{
+  --paper:#F2F6F5; --surface:#FFFFFF; --ink:#13262B; --muted:#5A6D71; --line:#D2DDDB;
+  --teal:#0E6B66; --teal-ink:#FFFFFF; --stamp:#C2362B; --amber:#A86A12; --ok:#2C7A4B;
+  --tint:#E3EEEC;
+  --f-display:"Black Han Sans","IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --f-body:"IBM Plex Sans KR","Apple SD Gothic Neo","Malgun Gothic",system-ui,sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --paper:#0E1719; --surface:#152326; --ink:#E3EDEB; --muted:#94A7A9; --line:#27393C;
+  --teal:#3DB5AB; --teal-ink:#06201E; --stamp:#F06A5E; --amber:#E2A548; --ok:#5DC48B; --tint:#1A2C2F; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --paper:#0E1719; --surface:#152326; --ink:#E3EDEB; --muted:#94A7A9; --line:#27393C;
+  --teal:#3DB5AB; --teal-ink:#06201E; --stamp:#F06A5E; --amber:#E2A548; --ok:#5DC48B; --tint:#1A2C2F; color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--paper);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55}
+*{box-sizing:border-box}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.app{min-height:100%;display:flex;flex-direction:column}
+.bar{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));border-bottom:1px solid var(--line);background:var(--surface)}
+.brand{font-family:var(--f-display);font-size:22px;letter-spacing:.01em;display:flex;align-items:baseline;gap:8px}
+.brand small{font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.nav{margin-left:auto;display:flex;gap:6px;flex-wrap:wrap}
+.nav button{border:1px solid var(--line);background:transparent;border-radius:999px;padding:6px 14px;cursor:pointer;font-size:14px}
+.nav button[aria-current="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.notice{font-size:13px;padding:8px 16px;background:var(--tint);color:var(--muted);text-align:center}
+main{flex:1;display:flex;padding-block:24px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.view{width:100%;max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:20px;min-width:0}
+h1,h2{font-family:var(--f-display);font-weight:400;text-wrap:balance;margin:0;line-height:1.2}
+h1{font-size:clamp(34px,5.4vw,60px)}
+h2{font-size:clamp(24px,3vw,32px)}
+p{margin:0}
+.lead{font-size:clamp(17px,2vw,21px);color:var(--muted);max-width:40em}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--teal)}
+.btn{border:0;border-radius:10px;padding:14px 22px;font-weight:700;font-size:17px;cursor:pointer;background:var(--teal);color:var(--teal-ink);min-height:52px}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.small{padding:8px 14px;min-height:0;font-size:14px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+
+/* start */
+.hero{display:grid;grid-template-columns:1.1fr 1fr;gap:32px;align-items:center}
+.hero .stack{display:flex;flex-direction:column;gap:18px;min-width:0}
+.fan{position:relative;aspect-ratio:1.25;max-width:100%}
+.fan img{position:absolute;width:72%;border-radius:12px;box-shadow:0 10px 30px rgba(0,0,0,.18)}
+.fan img:nth-child(1){left:0;top:4%;transform:rotate(-8deg)}
+.fan img:nth-child(2){left:14%;top:18%;transform:rotate(-1deg)}
+.fan img:nth-child(3){left:28%;top:32%;transform:rotate(6deg)}
+.steps{display:flex;gap:10px;flex-wrap:wrap;list-style:none;padding:0;margin:0;counter-reset:s}
+.steps li{counter-increment:s;font-size:14px;color:var(--muted);display:flex;gap:6px;align-items:center}
+.steps li::before{content:counter(s);font-family:var(--f-mono);width:22px;height:22px;border-radius:50%;border:1px solid var(--line);display:inline-grid;place-items:center;font-size:12px;color:var(--ink)}
+
+/* form */
+.form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 18px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:22px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+label{font-size:14px;font-weight:500}
+.req::after{content:" *";color:var(--stamp)}
+input[type=text],input[type=tel],input[type=email],select,textarea{border:1px solid var(--line);border-radius:8px;padding:12px;background:var(--paper);width:100%;min-height:48px}
+textarea{min-height:80px;resize:vertical}
+.consent{font-size:13px;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:8px;padding:12px;white-space:pre-wrap;max-height:140px;overflow:auto}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:15px}
+.check input{width:22px;height:22px;margin-top:2px;flex:none;accent-color:var(--teal)}
+.err{color:var(--stamp);font-size:14px;min-height:1.4em}
+
+/* play */
+.playgrid{display:grid;grid-template-columns:1.35fr 1fr;gap:28px;align-items:start}
+.cardframe{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px;display:flex;flex-direction:column;gap:12px;min-width:0}
+.cardframe img{width:100%;border-radius:10px;display:block;background:var(--tint)}
+.meta{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pips{display:flex;gap:6px}
+.pip{width:28px;height:6px;border-radius:3px;background:var(--line)}
+.pip.on{background:var(--ink)}
+.pip.right{background:var(--ok)} .pip.wrong{background:var(--stamp)}
+.choices{display:flex;flex-direction:column;gap:12px}
+.choice{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;padding:16px 18px;border-radius:12px;border:2px solid var(--line);background:var(--surface);cursor:pointer;min-height:76px}
+.choice b{font-family:var(--f-display);font-weight:400;font-size:26px}
+.choice span{font-size:14px;color:var(--muted)}
+.choice[data-k="원본"] b{color:var(--ok)} .choice[data-k="사본"] b{color:var(--amber)} .choice[data-k="위조"] b{color:var(--stamp)}
+.choice:hover{border-color:var(--ink)}
+.verdict{display:flex;flex-direction:column;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px}
+.stamp{align-self:flex-start;font-family:var(--f-display);font-size:30px;padding:4px 16px;border:3px solid currentColor;border-radius:8px;transform:rotate(-3deg)}
+.stamp.right{color:var(--ok)} .stamp.wrong{color:var(--stamp)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:15px}
+.kv dt{color:var(--muted)} .kv dd{margin:0;font-weight:700}
+.aisee{border:1px dashed var(--line);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:8px}
+.aisee .tag{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;color:var(--teal)}
+.aisee img{width:100%;border-radius:8px}
+.aisee .ph{font-size:14px;color:var(--muted);padding:18px;text-align:center;background:var(--tint);border-radius:8px}
+
+/* result */
+.result{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+.score{background:var(--ink);color:var(--paper);border-radius:16px;padding:28px;display:flex;flex-direction:column;gap:10px}
+.score .num{font-family:var(--f-display);font-size:96px;line-height:1;font-variant-numeric:tabular-nums}
+.score .num small{font-size:36px;opacity:.6}
+.tier{font-family:var(--f-display);font-size:30px}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;display:flex;flex-direction:column;gap:14px;min-width:0}
+
+.codeline{display:flex;gap:12px;align-items:baseline;font-size:15px;opacity:.85}
+.codeline b{font-family:var(--f-mono);font-size:30px;letter-spacing:.18em;opacity:1}
+.clock{font-family:var(--f-mono);font-size:20px;font-variant-numeric:tabular-nums;opacity:.75}
+/* board */
+.board{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+.board th{text-align:left;font-size:12px;letter-spacing:.08em;color:var(--muted);font-weight:500;padding:8px 10px;border-bottom:1px solid var(--line)}
+.board td{padding:12px 10px;border-bottom:1px solid var(--line);font-size:18px}
+.board td.rank{font-family:var(--f-display);font-size:26px;width:64px}
+.board tr:nth-child(1) td.rank{color:var(--teal)}
+.board td.mono{font-family:var(--f-mono);font-size:15px;color:var(--muted)}
+.empty{padding:36px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:12px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;overflow:hidden}
+.seg button{border:0;background:transparent;padding:6px 14px;cursor:pointer;font-size:14px}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+
+/* admin */
+.cfg{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px}
+.cfgcard{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px;min-width:0}
+.cfgcard img{width:100%;border-radius:8px;background:var(--tint)}
+.cfgcard .thumbs{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.cfgcard .thumbs div{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)}
+.file{font-size:13px}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.leads{border-collapse:collapse;min-width:1100px;width:100%;font-size:14px}
+.leads th,.leads td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+.leads th{font-size:12px;color:var(--muted);font-weight:500;position:sticky;top:0;background:var(--surface)}
+.leads td.n{font-variant-numeric:tabular-nums;font-family:var(--f-mono)}
+.leads select{min-height:0;padding:4px 6px}
+.stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--surface);min-width:120px}
+.stat b{display:block;font-family:var(--f-display);font-size:28px;font-weight:400;font-variant-numeric:tabular-nums}
+.stat span{font-size:12px;color:var(--muted)}
+.hint{font-size:13px;color:var(--muted)}
+.tabs{display:flex;gap:6px}
+
+@media (max-width:760px){
+  .hero,.playgrid,.result{grid-template-columns:1fr}
+  .form{grid-template-columns:1fr}
+  .fan{max-width:360px}
+  .score .num{font-size:72px}
+}
+@media (prefers-reduced-motion:no-preference){
+  .view{animation:in .25s ease-out}
+  @keyframes in{from{transform:translateY(6px)}to{transform:none}}
+  .stamp{animation:stampin .3s ease-out}
+  @keyframes stampin{from{transform:rotate(-3deg) scale(1.25)}to{transform:rotate(-3deg) scale(1)}}
+}
+</style>
+
+<div class="app">
+  <header class="bar">
+    <div class="brand">aiSee 감식단 <small>Fintech Week 2026</small></div>
+    <nav class="nav" aria-label="화면">
+      <button id="nav-play" data-go="start">체험</button>
+      <button id="nav-board" data-go="board" hidden>리더보드</button>
+      <button id="nav-mreg" data-go="mreg" hidden>휴대폰 참가자 등록</button>
+      <button id="nav-admin" data-go="admin" hidden>관리</button>
+    </nav>
+  </header>
+  <div class="notice" id="notice" hidden></div>
+  <main><div class="view" id="view"></div></main>
+</div>
+
+<script>
+(() => {
+"use strict";
+/* ---------- defaults ---------- */
+const KINDS = {"원본":"정식 발급된 진짜 신분증","사본":"화면 재촬영·인쇄 등으로 복제한 이미지","위조":"사진이나 정보를 바꿔 만든 가짜"};
+const DEFAULT_CARDS = [
+  {variant:"original", answer:"원본", subtype:"원본", hint:"인쇄 패턴과 홀로그램 영역이 고르게 보이고, 사진과 글자 정렬이 자연스럽습니다."},
+  {variant:"recapture", answer:"사본", subtype:"화면 재촬영", hint:"모니터 화면을 다시 찍으면 화면 격자 때문에 물결무늬(모아레)와 빛 반사가 생기기 쉽습니다."},
+  {variant:"photoswap", answer:"위조", subtype:"사진 교체", hint:"사진 영역의 테두리와 배경색이 주변 인쇄와 어긋나 있습니다."},
+  {variant:"printcopy", answer:"사본", subtype:"인쇄 사본", hint:"종이에 출력한 사본은 색이 바래고, 홀로그램 같은 광학 요소가 사라집니다."},
+  {variant:"tamper", answer:"위조", subtype:"정보 변조", hint:"번호 중 한 글자의 글꼴과 높이가 다른 글자와 다릅니다."}
+];
+const DEFAULT_CONSENT = "[수집 항목] 이름, 소속, 직무, 업종, 연락처, 이메일\n[수집 목적] 이벤트 운영, 경품 지급, 제품 상담 연락\n[보유 기간] 행사 종료 후 ○개월 (법무 확인 후 확정)\n동의를 거부할 수 있으며, 거부 시 이벤트 참여와 경품 수령이 어렵습니다.";
+const DEFAULT_PRIZES = {perfect:"커피 모바일 교환권 + 리더보드 등재", great:"무선 충전기 또는 텀블러", basic:"브랜드 카드지갑 또는 루페 키링"};
+const DEFAULT_SUBTYPES = {"사본":["화면 재촬영","인쇄 사본"], "위조":["사진 교체","정보 변조"]};
+const INDUSTRIES = ["은행","카드","증권","보험","핀테크","공공기관","통신","기타"];
+
+/* ---------- sample card art (fictional, placeholder) ---------- */
+const NAMES = {original:"김가상", recapture:"이체험", photoswap:"박샘플", printcopy:"최데모", tamper:"정예시"};
+function rosette(cx, cy, r, n, amp){
+  let d = "";
+  for (let i=0;i<=720;i++){ const t=i/720*Math.PI*2; const rr=r+amp*Math.sin(n*t); d += (i?"L":"M")+(cx+rr*Math.cos(t)).toFixed(1)+" "+(cy+rr*Math.sin(t)).toFixed(1); }
+  return d;
+}
+function cardSVG(variant){
+  const name = NAMES[variant] || "김가상";
+  const gray = variant==="printcopy";
+  const holo = variant==="original" || variant==="tamper" || variant==="photoswap";
+  let guil = "";
+  for (let k=0;k<6;k++) guil += `<path d="${rosette(640,250,120+k*14,9+k,10)}" fill="none" stroke="#0E6B66" stroke-opacity=".22" stroke-width="1"/>`;
+  const photoBg = variant==="photoswap" ? "#E9D9C3" : "#D6E4E2";
+  const photoOff = variant==="photoswap" ? 7 : 0;
+  const num = variant==="tamper"
+    ? `<tspan>DEMO-2026-04</tspan><tspan font-family="Georgia,serif" font-weight="700" dy="-3">8</tspan><tspan dy="3">1</tspan>`
+    : `<tspan>DEMO-2026-0481</tspan>`;
+  let card = `
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#F4FAF8"/><stop offset="1" stop-color="#DCEBE8"/></linearGradient>
+    <radialGradient id="ho" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#F7D9FF" stop-opacity=".9"/><stop offset=".45" stop-color="#C5F1FF" stop-opacity=".7"/><stop offset=".8" stop-color="#FFF2B8" stop-opacity=".55"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/></radialGradient>
+    <filter id="g"><feColorMatrix type="saturate" values="0.08"/><feComponentTransfer><feFuncR type="linear" slope=".9" intercept=".07"/><feFuncG type="linear" slope=".9" intercept=".07"/><feFuncB type="linear" slope=".9" intercept=".06"/></feComponentTransfer></filter>
+    <filter id="nz"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="1" seed="3"/><feColorMatrix values="0 0 0 0 .3  0 0 0 0 .3  0 0 0 0 .3  0 0 0 .18 0"/></filter>
+    <pattern id="moire" width="7" height="7" patternUnits="userSpaceOnUse" patternTransform="rotate(12)"><rect width="7" height="3.2" fill="#3a6b8a" fill-opacity=".16"/></pattern>
+    <pattern id="moire2" width="6.4" height="6.4" patternUnits="userSpaceOnUse" patternTransform="rotate(-4)"><rect width="6.4" height="2.8" fill="#8a3a6b" fill-opacity=".10"/></pattern>
+    <clipPath id="cc"><rect x="0" y="0" width="856" height="540" rx="34"/></clipPath>
+  </defs>
+  <g clip-path="url(#cc)">
+    <rect width="856" height="540" fill="url(#bg)"/>
+    ${guil}
+    <rect x="0" y="0" width="856" height="78" fill="#0E6B66"/>
+    <text x="40" y="51" font-family="IBM Plex Sans KR,Malgun Gothic,sans-serif" font-size="30" font-weight="700" fill="#fff">체험용 샘플 신분증</text>
+    <text x="816" y="49" text-anchor="end" font-family="IBM Plex Mono,monospace" font-size="18" fill="#CFEDEA">DEMO ONLY</text>
+    <rect x="${44+photoOff}" y="${112+photoOff}" width="210" height="270" rx="10" fill="${photoBg}" stroke="${variant==="photoswap"?"#A88C66":"#9DB9B5"}" stroke-width="${variant==="photoswap"?3:1.5}"/>
+    <circle cx="${149+photoOff}" cy="${215+photoOff}" r="52" fill="${variant==="photoswap"?"#8B6F55":"#6F8F8B"}"/>
+    <path d="M${69+photoOff} ${382+photoOff} q80 -120 160 0 z" fill="${variant==="photoswap"?"#8B6F55":"#6F8F8B"}"/>
+    <g font-family="IBM Plex Sans KR,Malgun Gothic,sans-serif" fill="#13262B">
+      <text x="300" y="150" font-size="20" fill="#5A6D71">성명</text>
+      <text x="300" y="192" font-size="40" font-weight="700">${name}</text>
+      <text x="300" y="246" font-size="20" fill="#5A6D71">번호</text>
+      <text x="300" y="284" font-size="32" font-family="IBM Plex Mono,monospace">${num}</text>
+      <text x="300" y="338" font-size="20" fill="#5A6D71">발급</text>
+      <text x="300" y="372" font-size="26">2026. 11. 01 · 컴트루 체험 부스</text>
+    </g>
+    ${holo?`<ellipse cx="720" cy="430" rx="92" ry="62" fill="url(#ho)"/><ellipse cx="720" cy="430" rx="92" ry="62" fill="none" stroke="#9DB9B5" stroke-dasharray="4 5"/>`:""}
+    <text x="40" y="500" font-family="IBM Plex Mono,monospace" font-size="16" fill="#5A6D71">AISEE-BOOTH-SPECIMEN · NOT A VALID ID</text>
+    <text x="428" y="330" text-anchor="middle" transform="rotate(-18 428 300)" font-family="Black Han Sans,IBM Plex Sans KR,sans-serif" font-size="150" fill="#C2362B" fill-opacity=".14" letter-spacing="10">SAMPLE</text>
+  </g>`;
+  if (gray) card = `<g filter="url(#g)">${card}</g><rect width="856" height="540" rx="34" filter="url(#nz)"/>`;
+  let svg;
+  if (variant==="recapture"){
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 680">
+      <rect width="1000" height="680" fill="#1d2326"/>
+      <rect x="22" y="22" width="956" height="636" rx="14" fill="#0c1012"/>
+      <g transform="translate(78 62) rotate(-2.5 428 270)">${card}</g>
+      <rect x="22" y="22" width="956" height="636" fill="url(#moire)"/>
+      <rect x="22" y="22" width="956" height="636" fill="url(#moire2)"/>
+      <ellipse cx="690" cy="170" rx="250" ry="90" fill="#ffffff" fill-opacity=".22" transform="rotate(-14 690 170)"/>
+    </svg>`;
+  } else {
+    svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="-40 -40 936 620"><rect x="-40" y="-40" width="936" height="620" fill="${gray?"#E6E4DF":"#C9D6D4"}"/>${card}</svg>`;
+  }
+  return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+}
+const ART = {}; for (const v of ["original","recapture","photoswap","printcopy","tamper"]) ART[v] = cardSVG(v);
+
+/* ---------- state ---------- */
+const S = {
+  db:null, user:null, assets:null, downloads:null, canEdit:false, live:false,
+  config:{cards:DEFAULT_CARDS.map(c=>({...c})), consent:DEFAULT_CONSENT, prizes:{...DEFAULT_PRIZES}, subtypes:JSON.parse(JSON.stringify(DEFAULT_SUBTYPES))},
+  leads:[], leadsLoaded:false, view:"start", boardScope:"today", adminTab:"cards",
+  run:null
+};
+const memLeads = new Map(); // preview fallback
+
+/* ---------- helpers ---------- */
+const $ = s => document.querySelector(s);
+function el(tag, attrs={}, ...kids){
+  const n = document.createElement(tag);
+  for (const [k,v] of Object.entries(attrs||{})){
+    if (v==null || v===false) continue;
+    if (k==="class") n.className=v; else if (k==="text") n.textContent=v;
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else if (k==="html") n.innerHTML=v; else n.setAttribute(k, v===true?"":v);
+  }
+  for (const k of kids.flat()) if (k!=null && k!==false) n.append(k.nodeType?k:document.createTextNode(String(k)));
+  return n;
+}
+const today = () => { const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); };
+const fmtTime = ms => { const s=Math.round(ms/1000); return Math.floor(s/60)+":"+String(s%60).padStart(2,"0"); };
+const imgFor = c => c.cardAsset ? "/_blob/"+c.cardAsset : (ART[c.variant] || ART.original);
+const maxScore = () => S.config.cards.length + S.config.cards.filter(c=>c.answer!=="원본").length;
+const greatAt = max => Math.ceil(max*0.7);
+const tierOf = (score,max) => score>=max ? ["만점상","perfect"] : score>=greatAt(max) ? ["우수상","great"] : ["참가상","basic"];
+const subsFor = k => (S.config.subtypes && S.config.subtypes[k]) || DEFAULT_SUBTYPES[k] || [];
+function notice(msg){ const n=$("#notice"); n.hidden=!msg; n.textContent=msg||""; }
+
+async function saveLead(id, data, merge){
+  if (!S.live){ memLeads.set(id, {...(memLeads.get(id)||{}), ...data}); S.leads=[...memLeads.entries()].map(([i,d])=>({id:i,...d})); return; }
+  const ref = S.db.collection("leads").doc(id);
+  try { merge ? await ref.update(data) : await ref.set(data); }
+  catch(e){
+    if (e && e.code==="unavailable"){ await new Promise(r=>setTimeout(r,600+Math.random()*600)); merge ? await ref.update(data) : await ref.set(data); }
+    else throw e;
+  }
+}
+async function saveConfig(){
+  if (!S.live) return;
+  await S.db.doc("config/game").set(JSON.parse(JSON.stringify(S.config)));
+}
+
+/* ---------- idle reset (privacy on a shared tablet) ---------- */
+let idleT=null;
+function armIdle(){
+  clearTimeout(idleT);
+  if (!S.canEdit) return;
+  const limits = {reg:120, play:120, result:90, done:45};
+  if (S.view==="board" && S.boardStaff){ idleT=setTimeout(()=>{ S.boardStaff=false; render(); },60000); return; }
+  const sec = limits[S.view]; if (!sec) return;
+  idleT = setTimeout(()=>{ S.run=null; go("start"); }, sec*1000);
+}
+["pointerdown","keydown"].forEach(ev=>document.addEventListener(ev, armIdle, {passive:true}));
+
+let wake=null;
+async function keepAwake(){ try{ if (!wake && navigator.wakeLock) { wake = await navigator.wakeLock.request("screen"); wake.addEventListener("release",()=>wake=null); } }catch(_){} }
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible" && S.view!=="admin") keepAwake(); });
+
+/* ---------- router ---------- */
+function go(v){
+  S.mobileEntry = (v==="mreg");
+  if (v==="mreg") v="reg";
+  if (S.pendingConfig && !["admin","play","reg"].includes(v)){ S.config=S.pendingConfig; S.pendingConfig=null; }
+  S.view=v; S.boardStaff=false;
+  document.querySelectorAll(".nav button").forEach(b=>{
+    const g=b.dataset.go; const cur = S.mobileEntry ? g==="mreg" : (g===v || (g==="start" && ["start","reg","play","result","done"].includes(v)));
+    b.setAttribute("aria-current", cur?"true":"false");
+  });
+  render(); armIdle(); window.scrollTo(0,0);
+}
+document.querySelectorAll(".nav button").forEach(b=>b.addEventListener("click",()=>{ if(b.dataset.go==="start") S.run=null; go(b.dataset.go); }));
+
+function render(){
+  const root = $("#view"); root.replaceChildren();
+  const fn = {start:vStart, reg:vReg, play:vPlay, result:vResult, done:vDone, board:vBoard, admin:vAdmin}[S.view] || vStart;
+  root.append(...[].concat(fn()));
+}
+
+/* ---------- views ---------- */
+function vStart(){
+  const c = S.config.cards;
+  return [el("div",{class:"hero"},
+    el("div",{class:"stack"},
+      el("div",{class:"eyebrow",text:"aiSee 신분증 판별 체험"}),
+      el("h1",{},"이 신분증,", el("br"), "진짜일까요?"),
+      el("p",{class:"lead",text:"비대면 계좌 개설 창구로 신분증 5장이 들어왔습니다. 원본, 사본, 위조를 가려 보세요. 사본이나 위조를 맞히면 어떤 수법인지 맞히는 보너스 문제가 나옵니다. 같은 신분증을 aiSee가 어떻게 판별했는지도 바로 확인할 수 있습니다."}),
+      S.canEdit
+        ? el("ol",{class:"steps"}, el("li",{text:"참가 등록"}), el("li",{text:"5장 판별"}), el("li",{text:"보너스: 종류 맞히기"}), el("li",{text:"aiSee 결과 비교"}), el("li",{text:"경품 수령"}))
+        : el("ol",{class:"steps"}, el("li",{text:"5장 판별"}), el("li",{text:"보너스: 종류 맞히기"}), el("li",{text:"aiSee 결과 비교"}), el("li",{text:"부스에서 경품 수령"})),
+      el("div",{class:"row"}, el("button",{class:"btn",id:"start-btn",onclick:()=>{ if (S.canEdit){ keepAwake(); go("reg"); } else startMobile(); }},"감식 시작하기"),
+        el("span",{class:"hint",text: S.canEdit ? "약 3분 · 정답 수에 따라 경품 증정" : "약 3분 · 결과 화면을 컴트루 부스에 보여 주시면 경품을 드립니다"}))
+    ),
+    el("div",{class:"fan","aria-hidden":"true"}, ...[c[3],c[1],c[0]].map(x=>el("img",{src:imgFor(x),alt:""})))
+  )];
+}
+
+function startMobile(){
+  S.run = {id:null, mobile:true, lead:null, i:0, answers:[], start:performance.now(), phase:"ask"};
+  go("play");
+}
+function vReg(){
+  const me = S.mobileEntry;
+  const f = el("form",{class:"form",id:"reg-form",novalidate:true});
+  const fld = (id,label,input,req,full) => el("div",{class:"field"+(full?" full":"")}, el("label",{for:id,class:req?"req":null,text:label}), input);
+  f.append(
+    fld("r-name","이름", el("input",{type:"text",id:"r-name",autocomplete:"off",required:true}), true),
+    fld("r-nick","리더보드 닉네임", el("input",{type:"text",id:"r-nick",maxlength:"12",placeholder:"예: 감식왕",autocomplete:"off"}), false),
+    fld("r-role","직업·직무", el("input",{type:"text",id:"r-role",autocomplete:"off",placeholder:"예: 정보보안 담당 / eKYC 운영",required:true}), true),
+    fld("r-phone","휴대폰", el("input",{type:"tel",id:"r-phone",inputmode:"tel",autocomplete:"off",placeholder:"010-0000-0000",required:true}), true),
+    fld("r-email","이메일", el("input",{type:"email",id:"r-email",inputmode:"email",autocomplete:"off",placeholder:"name@company.com",required:true}), true),
+    fld("r-org","소속(회사·기관)", el("input",{type:"text",id:"r-org",autocomplete:"off"}), false),
+    fld("r-ind","업종", el("select",{id:"r-ind"}, el("option",{value:"",text:"선택해 주세요"}), ...INDUSTRIES.map(i=>el("option",{value:i,text:i}))), false),
+    me ? el("div",{class:"field"}, el("label",{for:"r-score",class:"req",text:"휴대폰 화면의 점수"}),
+      el("select",{id:"r-score"}, el("option",{value:"",text:"선택해 주세요"}), ...Array.from({length:maxScore()+1},(_,k)=>maxScore()-k).map(k=>el("option",{value:String(k),text:`${k} / ${maxScore()}`})))) : null,
+    me ? el("div",{class:"field"}, el("label",{for:"r-code",text:"확인 코드"}), el("input",{type:"text",id:"r-code",autocomplete:"off",placeholder:"예: K7Q"})) : null,
+    me ? el("label",{class:"check full",for:"r-meet",style:"grid-column:1/-1"}, el("input",{type:"checkbox",id:"r-meet"}), el("span",{},"후속 상담·데모 미팅을 신청합니다.")) : null,
+    me ? el("div",{class:"field full"}, el("label",{for:"r-note",text:"관심 있는 내용 (선택)"}), el("input",{type:"text",id:"r-note",autocomplete:"off"})) : null,
+    el("div",{class:"field full"}, el("div",{class:"consent",text:S.config.consent})),
+    el("label",{class:"check full",for:"r-c1",style:"grid-column:1/-1"}, el("input",{type:"checkbox",id:"r-c1"}), el("span",{},"(필수) 개인정보 수집·이용에 동의합니다.")),
+    el("label",{class:"check full",for:"r-c2",style:"grid-column:1/-1"}, el("input",{type:"checkbox",id:"r-c2"}), el("span",{},"(선택) 컴트루테크놀로지의 제품·행사 소식 수신에 동의합니다.")),
+    el("div",{class:"err full",id:"r-err",style:"grid-column:1/-1"}),
+    el("div",{class:"row full",style:"grid-column:1/-1"},
+      el("button",{class:"btn",type:"submit",id:"r-submit"}, me?"등록하고 경품 확인":"등록하고 시작"),
+      el("button",{class:"btn ghost",type:"button",onclick:()=>go("start")},"처음으로"))
+  );
+  f.addEventListener("submit", async e=>{
+    e.preventDefault();
+    const v = id => $("#"+id).value.trim();
+    const err = $("#r-err");
+    if (!v("r-name")||!v("r-role")||!v("r-phone")||!v("r-email")){ err.textContent="이름, 직업·직무, 휴대폰, 이메일을 모두 입력해 주세요."; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v("r-email"))){ err.textContent="이메일 주소를 확인해 주세요. 예: name@company.com"; return; }
+    if (!/^[0-9\-\s+]{9,15}$/.test(v("r-phone"))){ err.textContent="휴대폰 번호를 숫자로 입력해 주세요. 예: 010-1234-5678"; return; }
+    if (me && v("r-score")===""){ err.textContent="참가자 휴대폰 화면에 나온 점수를 골라 주세요."; return; }
+    if (!$("#r-c1").checked){ err.textContent="이벤트 참여에는 개인정보 수집·이용 동의가 필요합니다."; return; }
+    const id = "L"+Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+    const lead = {name:v("r-name"), nickname:v("r-nick")||v("r-name").slice(0,1)+"○○", org:v("r-org"), role:v("r-role"), industry:v("r-ind"),
+      phone:v("r-phone"), email:v("r-email"), consentRequired:true, consentMarketing:$("#r-c2").checked,
+      createdAt:Date.now(), day:today(), status:"playing", score:null, durationMs:null, answers:[], wantsMeeting:false, meetingNote:"", grade:"", prizeGiven:false, staffNote:""};
+    if (me){
+      const score=Number(v("r-score")), max=maxScore(), [tier]=tierOf(score,max);
+      Object.assign(lead, {source:"mobile", status:"done", score, maxScore:max, tier, mobileCode:v("r-code"), wantsMeeting:$("#r-meet").checked, meetingNote:v("r-note")});
+    }
+    $("#r-submit").disabled=true;
+    try { await saveLead(id, lead, false); }
+    catch(_) { err.textContent="저장하지 못했습니다. 네트워크를 확인하고 다시 눌러 주세요."; $("#r-submit").disabled=false; return; }
+    if (me){ S.run = {id, lead, score:lead.score, max:lead.maxScore, wantsMeeting:lead.wantsMeeting, staffEntry:true}; S.mobileEntry=false; S.view="done"; render(); armIdle(); return; }
+    S.run = {id, lead, i:0, answers:[], start:performance.now(), phase:"ask"};
+    go("play");
+  });
+  return me
+    ? [el("div",{class:"eyebrow",text:"스태프용 · 휴대폰 참가자"}), el("h2",{text:"휴대폰으로 참여한 분 등록"}), el("p",{class:"hint",text:"참가자 휴대폰의 결과 화면(시계가 움직이는 화면)을 확인한 뒤 점수와 확인 코드를 입력해 주세요."}), f]
+    : [el("div",{class:"eyebrow",text:"STEP 1 · 참가 등록"}), el("h2",{text:"감식단 등록"}), f];
+}
+
+function pips(){
+  const r=S.run;
+  return el("div",{class:"pips","aria-hidden":"true"}, ...S.config.cards.map((_,k)=>{
+    const a=r.answers[k]; return el("span",{class:"pip"+(a? (a.correct?" right":" wrong") : (k===r.i?" on":""))});
+  }));
+}
+function vPlay(){
+  const r=S.run; if(!r){ return vStart(); }
+  const c=S.config.cards[r.i]; const n=S.config.cards.length;
+  const frame = el("div",{class:"cardframe"},
+    el("div",{class:"meta"}, el("span",{text:`신분증 ${r.i+1} / ${n}`}), pips()),
+    el("img",{src:imgFor(c),alt:`판별할 신분증 ${r.i+1}번`}),
+    el("div",{class:"hint",text:"체험용으로 만든 가상 신분증입니다. 실제 개인정보는 사용하지 않았습니다."})
+  );
+  let side;
+  if (r.phase==="ask"){
+    side = el("div",{class:"choices"},
+      el("p",{class:"lead",text:"이 신분증은 무엇일까요?"}),
+      ...Object.entries(KINDS).map(([k,desc])=>el("button",{class:"choice","data-k":k,id:"ch-"+k,onclick:()=>answer(k)}, el("b",{text:k}), el("span",{text:desc})))
+    );
+  } else if (r.phase==="sub"){
+    const a=r.answers[r.i];
+    side = el("div",{class:"choices"},
+      el("div",{class:"stamp right",text:"정답"}),
+      el("p",{class:"lead",text:`맞아요, ${a.pick}입니다. 보너스 문제: 어떤 ${a.pick}일까요?`}),
+      ...subsFor(a.pick).map((t,j)=>el("button",{class:"choice","data-k":a.pick,id:"sub-"+j,onclick:()=>subAnswer(t)}, el("b",{text:t}))),
+      el("button",{class:"btn ghost",id:"sub-skip",onclick:()=>subAnswer(null)},"잘 모르겠어요")
+    );
+  } else {
+    const a=r.answers[r.i];
+    side = el("div",{class:"verdict"},
+      el("div",{class:"stamp "+(a.correct?"right":"wrong"),text:!a.correct?"오답":(a.asked&&!a.subCorrect?"절반 정답":"정답")}),
+      el("dl",{class:"kv"}, el("dt",{text:"내 판단"}), el("dd",{text:a.pick+(a.asked?` · ${a.subPick||"모름"}`:"")}), el("dt",{text:"정답"}), el("dd",{text:c.answer+(c.subtype&&c.subtype!==c.answer?` · ${c.subtype}`:"")}),
+        el("dt",{text:"점수"}), el("dd",{text:`+${(a.correct?1:0)+(a.subCorrect?1:0)}`+(a.asked?(a.subCorrect?" (보너스 포함)":" (보너스 놓침)"):"")})),
+      el("p",{text:c.hint}),
+      el("div",{class:"aisee"}, el("div",{class:"tag",text:"aiSee 판별 결과"}),
+        c.aiseeAsset ? el("img",{src:"/_blob/"+c.aiseeAsset,alt:"aiSee 판별 결과 화면"}) : el("div",{class:"ph",text:"aiSee 판별 결과 캡처를 관리 화면에서 등록하면 여기에 표시됩니다."})),
+      el("button",{class:"btn",id:"next-btn",onclick:next}, r.i+1<n?"다음 신분증":"결과 보기")
+    );
+  }
+  return [el("div",{class:"eyebrow",text:"STEP 2 · 판별"}), el("div",{class:"playgrid"}, frame, side)];
+}
+function answer(k){
+  const r=S.run, c=S.config.cards[r.i];
+  const correct = k===c.answer;
+  r.answers[r.i] = {pick:k, correct, asked:false, subPick:null, subCorrect:false};
+  r.phase = (correct && k!=="원본" && subsFor(k).length) ? "sub" : "reveal"; render();
+}
+function subAnswer(t){
+  const r=S.run, c=S.config.cards[r.i], a=r.answers[r.i];
+  a.asked=true; a.subPick=t; a.subCorrect = !!t && t===c.subtype;
+  r.phase="reveal"; render();
+}
+async function next(){
+  const r=S.run, n=S.config.cards.length;
+  if (r.i+1<n){ r.i++; r.phase="ask"; render(); return; }
+  r.durationMs = Math.round(performance.now()-r.start);
+  r.score = r.answers.reduce((s,a)=>s+(a.correct?1:0)+(a.subCorrect?1:0),0);
+  r.max = maxScore();
+  const [tier] = tierOf(r.score, r.max);
+  if (r.mobile){ r.code = Array.from({length:3},()=>"ACDEFGHJKMNPQRTUVWXY3479"[Math.floor(Math.random()*24)]).join(""); r.endedAt=new Date(); go("result"); return; }
+  $("#next-btn").disabled=true;
+  try { await saveLead(r.id, {status:"done", score:r.score, maxScore:r.max, durationMs:r.durationMs, tier, answers:r.answers.map(a=>a.pick+(a.asked?"/"+(a.subPick||"모름"):""))}, true); }
+  catch(_){ notice("결과를 저장하지 못했습니다. 스태프에게 알려 주세요."); }
+  go("result");
+}
+
+function vResult(){
+  const r=S.run; if(!r) return vStart();
+  const n=r.max; const [tier,key]=tierOf(r.score, r.max);
+  if (r.mobile){
+    const clock = el("div",{class:"clock",id:"live-clock"});
+    const tick = () => { const d=new Date(); clock.textContent = d.toLocaleTimeString("ko-KR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}); };
+    tick(); clearInterval(S.clockT); S.clockT = setInterval(()=>{ if(!document.body.contains(clock)) return clearInterval(S.clockT); tick(); },1000);
+    return [el("div",{class:"eyebrow",text:"감식 완료"}),
+      el("div",{class:"result"},
+        el("div",{class:"score"},
+          el("div",{class:"num"}, String(r.score), el("small",{text:" / "+n})),
+          el("div",{class:"tier",text:tier}),
+          el("p",{text:`경품: ${S.config.prizes[key]}`}),
+          el("div",{class:"codeline"}, el("span",{text:"확인 코드"}), el("b",{text:r.code})),
+          clock
+        ),
+        el("div",{class:"panel"},
+          el("h2",{text:"컴트루 부스에서 경품을 받으세요"}),
+          el("p",{text:"이 화면을 그대로 스태프에게 보여 주세요. 간단한 등록 후 경품을 드립니다. 캡처 화면은 확인이 어려울 수 있습니다."}),
+          el("p",{class:"hint",text:"aiSee 담당자가 자사 비대면 본인확인 흐름에 맞춰 1:1 상담도 해 드립니다. 상담을 신청하시면 추가 경품을 드립니다."}),
+          el("button",{class:"btn ghost",id:"again-btn",onclick:()=>{S.run=null; go("start");}},"처음부터 다시 하기")
+        )
+      )];
+  }
+  const board = rankFor(r.id);
+  return [el("div",{class:"eyebrow",text:"STEP 3 · 결과"}),
+    el("div",{class:"result"},
+      el("div",{class:"score"},
+        el("div",{class:"num"}, String(r.score), el("small",{text:" / "+n})),
+        el("div",{class:"tier",text:tier}),
+        el("p",{text:`경품: ${S.config.prizes[key]}`}),
+        el("p",{style:"opacity:.7;font-size:14px",text:`소요 시간 ${fmtTime(r.durationMs)}`+(board?` · 오늘 ${board}위`:"")})
+      ),
+      el("div",{class:"panel"},
+        el("h2",{text:"우리 회사 비대면 창구에도 필요할까요?"}),
+        el("p",{class:"hint",text:"aiSee 담당자가 자사 eKYC 흐름에 맞춰 1:1로 설명해 드립니다. 상담을 예약하시면 추가 경품을 드립니다."}),
+        el("label",{class:"check",for:"m-want"}, el("input",{type:"checkbox",id:"m-want"}), el("span",{},"후속 상담·데모 미팅을 신청합니다.")),
+        el("div",{class:"field"}, el("label",{for:"m-note",text:"관심 있는 내용 (선택)"}), el("textarea",{id:"m-note",placeholder:"예: 비대면 계좌 개설 시 신분증 사본 제출 대응, 도입 일정 등"})),
+        el("div",{class:"err",id:"m-err"}),
+        el("button",{class:"btn",id:"m-save",onclick:finish},"완료하고 경품 받기")
+      )
+    )];
+}
+async function finish(){
+  const r=S.run; const want=$("#m-want").checked; const note=$("#m-note").value.trim();
+  $("#m-save").disabled=true;
+  try { if (want||note) await saveLead(r.id,{wantsMeeting:want, meetingNote:note},true); }
+  catch(_){ $("#m-err").textContent="저장하지 못했습니다. 다시 눌러 주세요."; $("#m-save").disabled=false; return; }
+  r.wantsMeeting=want; go("done");
+}
+function vDone(){
+  const r=S.run; if(!r) return vStart();
+  const [tier,key]=tierOf(r.score, r.max);
+  return [el("div",{class:"stack",style:"display:flex;flex-direction:column;gap:18px;align-items:flex-start"},
+    el("div",{class:"eyebrow",text:"감식 완료"}),
+    el("h1",{text:`${r.lead.nickname} 님, ${tier}입니다`}),
+    r.staffEntry ? el("p",{class:"lead",text:`${r.score} / ${r.max}점 · 등록을 마쳤습니다.`}) : null,
+    el("p",{class:"lead",text:`이 화면을 스태프에게 보여 주시고 경품(${S.config.prizes[key]})을 받아 가세요.`+(r.wantsMeeting?" 상담 신청도 접수되었습니다.":"")}),
+    el("div",{class:"row"}, el("button",{class:"btn",id:"done-next",onclick:()=>{const st=r.staffEntry; S.run=null; go(st?"mreg":"start");}}, r.staffEntry?"다음 휴대폰 참가자 등록":"다음 분 시작"),
+      el("button",{class:"btn ghost",onclick:()=>{S.run=null; go("board");}},"리더보드 보기")),
+    el("p",{class:"hint",text:"45초 뒤 첫 화면으로 돌아갑니다."})
+  )];
+}
+
+/* ---------- leaderboard ---------- */
+function ranked(scope){
+  return S.leads.filter(l=>l.status==="done" && typeof l.score==="number" && (scope==="all"||l.day===today()))
+    .sort((a,b)=> b.score-a.score || (a.durationMs??9e15)-(b.durationMs??9e15) || a.createdAt-b.createdAt);
+}
+function rankFor(id){ const i=ranked("today").findIndex(l=>l.id===id); return i>=0?i+1:null; }
+function vBoard(){
+  const staff = S.canEdit && S.boardStaff;
+  const rows = ranked(S.boardScope).slice(0, staff?1000:10);
+  const seg = el("div",{class:"seg",role:"group","aria-label":"기간"},
+    ...[["today","오늘"],["all","전체 기간"]].map(([k,t])=>el("button",{id:"scope-"+k,"aria-pressed":S.boardScope===k?"true":"false",onclick:()=>{S.boardScope=k; render();}},t)));
+  const xbtn = (staff && S.downloads) ? el("button",{class:"btn small",id:"xlsx-btn",onclick:exportXLSX},"엑셀로 내려받기") : null;
+  const staffBtn = S.canEdit ? el("button",{class:"btn ghost small",id:"staff-toggle","aria-pressed":staff?"true":"false",onclick:()=>{S.boardStaff=!S.boardStaff; render(); armIdle();}}, staff?"참가자 정보 숨기기":"참가자 정보 보기 (스태프)") : null;
+  let body;
+  if (!S.live && !S.leads.length) body = el("div",{class:"empty",text:"참여 기록이 저장되는 화면입니다. 첫 참가자가 감식을 마치면 순위가 표시됩니다."});
+  else if (!S.leadsLoaded) body = el("div",{class:"empty",text:"순위를 불러오는 중입니다."});
+  else if (!rows.length) body = el("div",{class:"empty",text:"아직 기록이 없습니다. 첫 번째 감식왕에 도전해 보세요."});
+  else if (staff) body = el("div",{class:"scroll"}, el("table",{class:"leads",style:"min-width:900px"},
+    el("thead",{}, el("tr",{}, ...["순위","닉네임","이름","직업·직무","이메일","휴대폰","소속","점수","소요 시간","상담"].map(h=>el("th",{text:h})))),
+    el("tbody",{}, ...rows.map((l,i)=>el("tr",{},
+      el("td",{class:"n",text:String(i+1)}), el("td",{text:l.nickname||""}), el("td",{text:l.name||""}), el("td",{text:l.role||""}),
+      el("td",{text:l.email||""}), el("td",{class:"n",text:l.phone||""}), el("td",{text:l.org||""}),
+      el("td",{class:"n",text:`${l.score} / ${l.maxScore||S.config.cards.length}`}), el("td",{class:"n",text:(l.durationMs?fmtTime(l.durationMs):"휴대폰")}), el("td",{text:l.wantsMeeting?"신청":""}))))));
+  else body = el("div",{style:"overflow-x:auto"}, el("table",{class:"board"},
+    el("thead",{}, el("tr",{}, el("th",{text:"순위"}), el("th",{text:"닉네임"}), el("th",{text:"정답"}), el("th",{text:"소요 시간"}))),
+    el("tbody",{}, ...rows.map((l,i)=>el("tr",{}, el("td",{class:"rank",text:String(i+1)}), el("td",{text:l.nickname||"익명"}), el("td",{text:`${l.score} / ${l.maxScore||S.config.cards.length}`}), el("td",{class:"mono",text:(l.durationMs?fmtTime(l.durationMs):"휴대폰")}))))));
+  return [el("div",{class:"row",style:"justify-content:space-between"}, el("div",{}, el("div",{class:"eyebrow",text:"리더보드"}), el("h2",{text:"오늘의 감식왕"})), el("div",{class:"row"}, xbtn, staffBtn, seg)),
+    staff ? el("p",{class:"err",text:"참가자 개인정보가 화면에 보이는 상태입니다. 방문객 앞에서는 숨겨 주세요. 1분간 조작이 없으면 자동으로 숨겨집니다."}) : null,
+    el("p",{class:"hint",text:"점수는 판별 정답과 보너스(종류) 정답을 더한 값입니다. 점수가 같으면 더 빨리 끝낸 분이 앞섭니다."+(staff?"":" 닉네임만 표시됩니다.")}), body];
+}
+
+/* ---------- admin ---------- */
+function vAdmin(){
+  if (!S.canEdit) return [el("div",{class:"empty",text:"관리 화면은 편집 권한이 있는 계정에서만 열립니다."})];
+  const tabs = el("div",{class:"seg",role:"group","aria-label":"관리 메뉴"},
+    ...[["cards","문제·경품 설정"],["leads","참여자 명단"]].map(([k,t])=>el("button",{id:"tab-"+k,"aria-pressed":S.adminTab===k?"true":"false",onclick:()=>{S.adminTab=k; render();}},t)));
+  return [el("div",{class:"row",style:"justify-content:space-between"}, el("h2",{text:"부스 관리"}), tabs), ...(S.adminTab==="cards"?adminCards():adminLeads())];
+}
+function adminCards(){
+  const cards = S.config.cards;
+  const status = el("span",{class:"hint",id:"cfg-status"});
+  const grid = el("div",{class:"cfg"}, ...cards.map((c,k)=>{
+    const up = (field,label) => el("input",{type:"file",accept:"image/*",class:"file",id:`up-${field}-${k}`,"aria-label":label,onchange:async e=>{
+      const f=e.target.files[0]; if(!f) return;
+      if (!S.assets){ status.textContent="이 화면에서는 이미지를 올릴 수 없습니다(편집 권한 필요)."; return; }
+      status.textContent="이미지를 올리는 중…";
+      try{ const a=await S.assets.upload(f); c[field]=a.id; await saveConfig(); status.textContent="저장했습니다."; render(); }
+      catch(err){ status.textContent="올리지 못했습니다: "+(err&&err.message||"다시 시도해 주세요."); }
+    }});
+    return el("div",{class:"cfgcard"},
+      el("div",{class:"meta"}, el("span",{text:`신분증 ${k+1}`}), el("span",{text:c.cardAsset?"실제 샘플":"기본 시안 이미지"})),
+      el("div",{class:"thumbs"},
+        el("div",{}, el("img",{src:imgFor(c),alt:""}), "샘플 이미지", up("cardAsset","샘플 이미지 올리기")),
+        el("div",{}, c.aiseeAsset?el("img",{src:"/_blob/"+c.aiseeAsset,alt:""}):el("div",{class:"ph",style:"padding:14px;background:var(--tint);border-radius:8px;text-align:center",text:"미등록"}), "aiSee 결과 캡처", up("aiseeAsset","aiSee 결과 캡처 올리기"))),
+      el("div",{class:"field"}, el("label",{for:`ans-${k}`,text:"정답"}),
+        el("select",{id:`ans-${k}`,onchange:e=>{c.answer=e.target.value; c.subtype = c.answer==="원본"?"원본":(subsFor(c.answer)[0]||""); render();}}, ...Object.keys(KINDS).map(x=>el("option",{value:x,selected:c.answer===x,text:x})))),
+      el("div",{class:"field"}, el("label",{for:`sub-${k}`,text:"세부 유형 (보너스 문제 정답)"}),
+        c.answer==="원본" ? el("select",{id:`sub-${k}`,disabled:true}, el("option",{text:"보너스 문제 없음"}))
+        : el("select",{id:`sub-${k}`,onchange:e=>{c.subtype=e.target.value;}}, ...subsFor(c.answer).map(x=>el("option",{value:x,selected:c.subtype===x,text:x})))),
+      el("div",{class:"field"}, el("label",{for:`hint-${k}`,text:"해설"}), el("textarea",{id:`hint-${k}`,oninput:e=>{c.hint=e.target.value;}}, c.hint||"")),
+      (c.cardAsset||c.aiseeAsset)?el("button",{class:"btn ghost small",onclick:async()=>{delete c.cardAsset; delete c.aiseeAsset; await saveConfig(); render();}},"기본 이미지로 되돌리기"):null
+    );
+  }));
+  const pz = S.config.prizes;
+  const prize = el("div",{class:"form"},
+    ...[["perfect",`만점상 (${maxScore()}점 만점)`],["great",`우수상 (${greatAt(maxScore())}점 이상)`],["basic","참가상"]].map(([k,t])=>el("div",{class:"field"}, el("label",{for:"pz-"+k,text:t}), el("input",{type:"text",id:"pz-"+k,value:pz[k],oninput:e=>{pz[k]=e.target.value;}}))),
+    ...["사본","위조"].map(k=>el("div",{class:"field"}, el("label",{for:"st-"+k,text:`${k} 종류 보기 (쉼표로 구분)`}),
+      el("input",{type:"text",id:"st-"+k,value:subsFor(k).join(", "),onchange:e=>{ S.config.subtypes = S.config.subtypes||{}; S.config.subtypes[k]=e.target.value.split(",").map(x=>x.trim()).filter(Boolean); render(); }}))),
+    el("div",{class:"field full"}, el("label",{for:"consent-t",text:"개인정보 동의 문구 (법무 검토 후 확정)"}), el("textarea",{id:"consent-t",style:"min-height:120px",oninput:e=>{S.config.consent=e.target.value;}}, S.config.consent))
+  );
+  return [
+    el("p",{class:"hint",text:"기본 이미지는 화면 시안용 가상 카드입니다. 행사 전 aiSee로 미리 테스트한 실제 샘플 사진과 그 판별 결과 캡처를 카드마다 올려 주세요."}),
+    grid, el("h2",{text:"보너스 보기·경품·동의 문구"}), prize,
+    el("div",{class:"row"}, el("button",{class:"btn",id:"cfg-save",onclick:async()=>{status.textContent="저장 중…"; try{await saveConfig(); status.textContent=S.live?"저장했습니다. 모든 태블릿에 바로 반영됩니다.":"미리보기에서는 저장되지 않습니다.";}catch(_){status.textContent="저장하지 못했습니다. 다시 눌러 주세요.";}}},"설정 저장"), status)
+  ];
+}
+function adminLeads(){
+  const L = [...S.leads].sort((a,b)=>b.createdAt-a.createdAt);
+  const done=L.filter(l=>l.status==="done"), meet=L.filter(l=>l.wantsMeeting), A=L.filter(l=>l.grade==="A");
+  const todayN = L.filter(l=>l.day===today()).length;
+  const stats = el("div",{class:"stats"},
+    ...[[L.length,"전체 등록"],[todayN,"오늘 등록"],[done.length,"체험 완료"],[meet.length,"상담 신청"],[A.length,"A등급 리드"]].map(([n,t])=>el("div",{class:"stat"}, el("b",{text:String(n)}), el("span",{text:t}))));
+  const upd = async (l, patch) => { Object.assign(l, patch); try{ await saveLead(l.id, patch, true); }catch(_){ notice("변경을 저장하지 못했습니다. 다시 시도해 주세요."); } };
+  let pendingDel=null;
+  const tbl = L.length ? el("div",{class:"scroll"}, el("table",{class:"leads"},
+    el("thead",{}, el("tr",{}, ...["시간","이름","소속","직무","업종","연락처","이메일","점수","상담","관심 내용","등급","경품","수신","메모",""].map(h=>el("th",{text:h})))),
+    el("tbody",{}, ...L.map(l=>{
+      const d=new Date(l.createdAt);
+      const del = el("button",{class:"btn ghost small",onclick:async e=>{
+        if (pendingDel!==l.id){ pendingDel=l.id; e.target.textContent="정말 삭제"; return; }
+        try{ if(S.live) await S.db.collection("leads").doc(l.id).delete(); else memLeads.delete(l.id); S.leads=S.leads.filter(x=>x.id!==l.id); render(); }catch(_){ notice("삭제하지 못했습니다."); }
+      }},"삭제");
+      return el("tr",{},
+        el("td",{class:"n",text:`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`}),
+        el("td",{text:l.name}), el("td",{text:l.org}), el("td",{text:l.role||""}), el("td",{text:l.industry||""}),
+        el("td",{class:"n",text:l.phone}), el("td",{text:l.email||""}),
+        el("td",{class:"n",text:l.status==="done"?`${l.score}/${l.maxScore||S.config.cards.length}`:"진행 중"}),
+        el("td",{text:l.wantsMeeting?"신청":""}), el("td",{text:l.meetingNote||""}),
+        el("td",{}, el("select",{"aria-label":"리드 등급",onchange:e=>upd(l,{grade:e.target.value})}, ...["","A","B","C"].map(g=>el("option",{value:g,selected:(l.grade||"")===g,text:g||"–"})))),
+        el("td",{}, el("input",{type:"checkbox","aria-label":"경품 지급",checked:!!l.prizeGiven,onchange:e=>upd(l,{prizeGiven:e.target.checked})})),
+        el("td",{text:l.consentMarketing?"동의":""}),
+        el("td",{}, el("input",{type:"text","aria-label":"스태프 메모",value:l.staffNote||"",style:"min-height:0;padding:4px 6px;min-width:140px",onchange:e=>upd(l,{staffNote:e.target.value.trim()})})),
+        el("td",{}, del)
+      );
+    })))) : el("div",{class:"empty",text:"아직 등록한 참가자가 없습니다. 체험 화면에서 첫 참가자가 등록하면 여기에 쌓입니다."});
+  const exp = S.downloads ? el("button",{class:"btn small",id:"xlsx-btn",onclick:exportXLSX},"엑셀로 내려받기") : null;
+  return [stats, el("div",{class:"row"}, exp, el("span",{class:"hint",text:"등급 기준: A 도입 검토·예산 보유 / B 관심·정보 수집 / C 단순 방문"})), tbl];
+}
+async function exportXLSX(){
+  const fmt = t => { const d=new Date(t); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`; };
+  const rank = new Map(ranked("all").map((l,i)=>[l.id,i+1]));
+  const rows = [...S.leads].sort((a,b)=>a.createdAt-b.createdAt).map(l=>({
+    "등록시각":fmt(l.createdAt), "전체순위":rank.get(l.id)||"", "이름":l.name||"", "닉네임":l.nickname||"", "직업·직무":l.role||"",
+    "이메일":l.email||"", "휴대폰":l.phone||"", "소속":l.org||"", "업종":l.industry||"",
+    "점수":typeof l.score==="number"?l.score:"", "만점":l.maxScore||"", "소요(초)":l.durationMs?Math.round(l.durationMs/1000):"",
+    "경품 등급":l.tier||"", "경품 지급":l.prizeGiven?"Y":"", "상담 신청":l.wantsMeeting?"Y":"", "관심 내용":l.meetingNote||"",
+    "리드 등급":l.grade||"", "마케팅 수신 동의":l.consentMarketing?"Y":"N", "스태프 메모":l.staffNote||"", "답안":(l.answers||[]).join(" | ")
+  }));
+  const btn = document.getElementById("xlsx-btn"); const label = btn ? btn.textContent : "";
+  try{
+    if (!window.XLSX) throw new Error("엑셀 모듈을 불러오지 못했습니다. 네트워크를 확인하고 다시 눌러 주세요.");
+    if (btn){ btn.disabled=true; btn.textContent="파일 만드는 중…"; }
+    const ws = XLSX.utils.json_to_sheet(rows, {header:["등록시각","전체순위","이름","닉네임","직업·직무","이메일","휴대폰","소속","업종","점수","만점","소요(초)","경품 등급","경품 지급","상담 신청","관심 내용","리드 등급","마케팅 수신 동의","스태프 메모","답안"]});
+    ws["!cols"] = [16,8,10,10,18,26,16,18,10,6,6,8,10,8,8,30,8,12,24,40].map(w=>({wch:w}));
+    ws["!autofilter"] = {ref: ws["!ref"]};
+    const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "참여자");
+    const buf = XLSX.write(wb, {bookType:"xlsx", type:"array"});
+    await S.downloads.save({filename:`핀테크위크2026_aiSee_참여자_${today()}.xlsx`, data:new Uint8Array(buf)});
+  }catch(e){ if (e && e.message && !/cancel|declin/i.test(e.code||"")) notice(e.message.startsWith("엑셀")?e.message:"엑셀 파일을 저장하지 못했습니다. 다시 시도해 주세요."); }
+  finally{ if (btn){ btn.disabled=false; btn.textContent=label; } }
+}
+
+/* ---------- boot ---------- */
+render(); go("start");
+if (false) (async () => {
+  const use = n => (window.claude && window.claude.use) ? window.claude.use(n).catch(()=>null) : Promise.resolve(null);
+  const [db,user,assets,downloads] = await Promise.all([use("db"),use("user"),use("assets"),use("downloads")]);
+  S.user=user; S.assets=assets; S.downloads=downloads;
+  try{ S.canEdit = user ? !!(await user.canEdit()) : false; }catch(_){ S.canEdit=false; }
+  $("#nav-admin").hidden = !S.canEdit; $("#nav-board").hidden = !S.canEdit; $("#nav-mreg").hidden = !S.canEdit;
+  if (S.view==="start") render();
+  if (!db){ S.leadsLoaded=true; render(); return; }
+  S.db=db; S.live=true;
+  const timer = setTimeout(()=>notice("데이터에 아직 연결되지 않았습니다. 네트워크를 확인해 주세요."), 10000);
+  db.doc("config/game").onSnapshot(snap=>{
+    if (snap.exists){ const d=snap.data(); const cur=S.view;
+      const cfg = {cards:(d.cards&&d.cards.length?d.cards:DEFAULT_CARDS).map(c=>({...c})), consent:d.consent||DEFAULT_CONSENT, prizes:{...DEFAULT_PRIZES,...(d.prizes||{})}, subtypes:d.subtypes||JSON.parse(JSON.stringify(DEFAULT_SUBTYPES))};
+      if (cur==="admin" || cur==="play" || cur==="reg"){ S.pendingConfig = cfg; }
+      else { S.config = cfg; render(); }
+    }
+  }, ()=>{});
+  db.collection("leads").orderBy("createdAt","desc").limit(1000).onSnapshot(snap=>{
+    if (!snap.metadata.fromCache){ clearTimeout(timer); notice(""); }
+    S.leads = snap.docs.map(d=>({id:d.id, ...d.data()})); S.leadsLoaded=true;
+    if (S.view==="board" || (S.view==="admin" && S.adminTab==="leads" && !document.activeElement.closest(".leads"))) render();
+  }, e=>{ clearTimeout(timer); S.leadsLoaded=true; if (e.code!=="revoked") notice("참여 기록을 불러오지 못했습니다. 이 기기 계정에 편집 권한이 있는지 확인해 주세요."); render(); });
+})();
+})();
+</script>
+
+</body>
+</html>
